@@ -1,0 +1,48 @@
+package main
+
+import (
+	"fmt"
+	"image"
+	"image/color"
+	"image/jpeg"
+	"os"
+)
+
+func main() {
+	imagePath := "example.jpg"
+	file, err := os.Open(imagePath)
+	if err != nil {
+		fmt.Println("Error opening image:", err)
+		return
+	}
+	defer file.Close()
+
+	img, _, err := image.Decode(file)
+	if err != nil {
+		fmt.Println("Error decoding image:", err)
+		return
+	}
+
+	bounds := img.Bounds()
+	width := bounds.Max.X
+	height := bounds.Max.Y
+	fmt.Printf("Image width: %d, height: %d\n", width, height)
+
+	grayImg := image.NewGray(bounds)
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			grayColor := color.GrayModel.Convert(img.At(x, y))
+			grayImg.Set(x, y, grayColor)
+		}
+	}
+
+	outputFile, err := os.Create("grayscale_example.jpg")
+	if err != nil {
+		fmt.Println("Error creating output file:", err)
+		return
+	}
+	defer outputFile.Close()
+
+	jpeg.Encode(outputFile, grayImg, nil)
+	fmt.Println("Image converted to grayscale.")
+}
